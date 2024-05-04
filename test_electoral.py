@@ -1,7 +1,6 @@
 # test_electoral.@property
 '''
 A module to reproduce the results from the test electoral RTBF 2024
-Comes with no guarantees. 
 
 Module-level tests:
 
