@@ -1,0 +1,264 @@
+---
+title: "Test electoral RTBF 2024"
+format: html
+---
+
+```{r}
+#| echo: false
+#| output: false
+library(tidyverse)
+library(ComplexHeatmap)
+library(viridis)
+#library(gridExtra)
+library(patchwork)
+library(ggalluvial)
+library(formattable)
+```
+
+## 1
+
+Le test électoral 2024 entretient-il le flou sur les partis de gauche ? Une petite analyse.
+
+@PaulMagnette @RajaeMaouane @jeanmarcnollet @RaoulHedebouw @francoisdesmet @prevotmaxime @GLBouchez @tgadisseux @BertrandHenne @RTBF
+
+Voici des résultats réels. Creusons un peu… 
+
+![](images/test_results.png)
+
+## 2
+
+Ceci est un clustering des réponses des partis (bleu=d'accord, rouge=pas d'accord). On voit sur l'arbre au sommet que les plus proches selon le questionnaire sont PS et Ecolo, auxquels se joint PTB, et plus loin Défi. MR et Engagés forment ici un cluster séparé.
+
+```{r}
+#| echo: false
+#| warning: false
+parties <- c('PTB', 'PS', 'Ecolo', 'Défi', 'Les Engagés', 'MR')
+qa <- read_csv('data/base_french_answers.csv')
+qa <- qa %>%
+        mutate(across(parties, ~ case_when(. == 'agree' ~ TRUE,
+                                           . == 'disagree' ~ FALSE,
+                                           . == 'undecided' ~ NA))) %>%
+        relocate(parties)
+# remove useless Q9
+qa <- qa %>% na.omit()
+questions <- qa %>% pull(question)
+resumes <- qa %>% pull(short)
+#qa_long <- qa %>% dplyr::select(-Texte, -Resume) %>% pivot_longer(cols=-Question, names_to="Parti", values_to="Reponse") %>% mutate(Parti=factor(Parti, levels=partis))
+qa_for_heatmap <- qa %>%
+        dplyr::select(-c(question, id, short)) %>%
+        as.matrix()
+qa_for_heatmap <- -1 * qa_for_heatmap
+rownames(qa_for_heatmap) <- paste(questions, resumes)
+Heatmap(qa_for_heatmap,
+        clustering_distance_rows = function(x, y) sum(x != y),
+        clustering_distance_columns = function(x, y) sum(x != y),
+        row_names_gp = grid::gpar(fontsize = 8),
+        show_heatmap_legend=FALSE,
+        show_row_dend=FALSE)
+```
+
+## 3
+
+Les plus observateurs auront remarqué que la question 9 (avortement jusqu'à 18 semaines) est omise car elle n'apporte pas d'info exploitable (4 d'accord, 2 non-réponses)
+
+## 4
+
+Voici le point central: le nombre de réponses différentes entre partis. On voit que PS et Ecolo ne diffèrent que pour 5 questions, avec des distances faibles pour le trio PS-Ecolo-PTB comparés aux autres partis. Donc ces partis sont plus difficilement différenciables.
+
+```{r}
+#| echo: false
+#| warning: false
+dist2(t(qa_for_heatmap), pairwise_fun = function(x, y) sum(x != y))
+```
+
+## 5
+
+Donc l'électeur de gauche indécis, pas trop aidé par le questionnaire, risque de voter au pif, pour le (ou la) plus sympa, ou "utile". On comprend facilement comment ceci peut pénaliser le parti qui aurait dû recevoir son suffrage sur base de préférences mieux définies.
+
+## 6
+
+On pourrait dire que ceci reflète une proximité réelle entre partis de gauche. Peut-être, mais c'est précisément pourquoi il est important de choisir des questions discriminantes (et aussi, dans une moindre mesure, pour mieux différencier Défi-PS et Engagés-MR).
+
+## 7
+
+On peut aussi avancer que les programmes et questions possibles sont limités, mais les questions pertinentes et clivantes ne manquent pourtant pas. Rien sur la décroissance, la protection du vivant, la démocratie participative, la désobéissance civile, la recherche, l'hôpital...
+
+## 8
+
+Et que penser de questions telles que celle-ci (c'est clair ?) et de la traduction des textes des programmes en "D'accord" / "Pas d'accord" (arbitraire ?). Evidemment je choisis ici un exemple assez caricatural.
+
+![](images/question_20.png)
+
+## 9
+
+Enfin, pour rire, j'ai demandé à GPT4 ce qu'il pouvait me dire sur une personne qui voterait comme chacun des 6 partis dans le questionnaire (en cachant les noms des partis). A prendre avec un grain de sel en sachant que GPT s’est formé essentiellement sur des textes en anglais.
+
+![](images/chatgpt_avis.png)
+
+## 10
+
+La table des données et le code (en R) pour générer le clustering et la table des distances sont ici: https://github.com/AlexIrrthum/test_electoral_2024
+
+## 11
+
+Avez-vous remarqué que le @TestElectoral @RTBF 2024 semble erratique ? On change une seule réponse et un parti loin derrière se retrouve 1er. Pour comprendre, j'ai ouvert la boîte noire et je me suis plongé dans la méthode de calcul des scores.
+
+![](images/confused_voter.webp)
+
+# 12
+
+Ceci fait suite à une autre série de posts où j'explique comment le Test pourrait pénaliser l'un ou l'autre des partis de gauche en présentant ceux-ci comme "tous pareils".
+
+# 13
+
+Le Test Electoral est un outil important pour notre démocratie et il doit être transparent sur sa méthodologie et ouvert à un examen minutieux. Mon but en pointant de potentielles faiblesses est d'aider à son amélioration dans le futur.
+
+# 14
+
+La formule de calcul avec boost et la matrice de pondération question X parti ne semblent pas disponibles. Cependant, ces infos sont dans le code de l'application, ce qui permet de répliquer la méthode de calcul et d'analyser ses effets.
+
+![](images/platform_code.png)
+
+# 15
+
+Dans la matrice des poids question X parti, les écarts entre questions sont très grands. Par example, les quatres questions immigration/intégration ont un poids (0.55) 10x moindre que la question "cyclistes" (5.45), et donc un effet negligeable sur le résultat.
+
+```{r}
+#| echo: false
+#| warning: false
+weights <- read_csv('data/base_french_weights.csv')
+themes <- read_csv('data/base_french_themes.csv')
+weights <- weights %>% left_join(themes)
+weights <- weights %>%
+        rowwise() %>%
+        mutate(weight_mean=mean(c_across(all_of(parties))))
+q <- weights %>% pull(question)
+s <- weights %>% pull(short)
+m <- weights %>% pull(weight_mean)
+qsm <- paste(q, ' ', s, ' (', round(m, digits=3), ')', sep='')
+weights$question <- factor(qsm, levels=rev(qsm))
+weights_french_long <- weights %>%
+        dplyr::select(question, parties, theme, theme_color) %>%
+        pivot_longer(cols=-c(question, theme, theme_color), names_to='parti', values_to='weight') %>%
+        mutate(parti=factor(parti, levels=parties)) 
+weights_french_long %>%
+        ggplot(aes(parti, question, fill=weight)) +
+        geom_tile() +
+        scale_fill_viridis(discrete=FALSE) +
+        ylab('Question + moyenne des poids')
+```
+
+```{r}
+#| echo: false
+#| warning: false
+parties <- c('Vlaams Belang','Vooruit','Open VLD','CD&V','Groen','PVDA','NVA')
+weights <- read_csv('data/base_flemish_weights.csv')
+weights <- weights %>%
+        rowwise() %>%
+        mutate(weight_mean=mean(c_across(all_of(parties))))
+q <- weights %>% pull(question)
+s <- weights %>% pull(short)
+m <- weights %>% pull(weight_mean)
+qsm <- paste(q, ' ', s, ' (', round(m, digits=3), ')', sep='')
+weights$question <- factor(qsm, levels=rev(qsm))
+weights_flemish_long <- weights %>%
+        dplyr::select(-id, -short, -weight_mean) %>%
+        pivot_longer(cols=-question, names_to='parti', values_to='weight') %>%
+        mutate(parti=factor(parti, levels=parties)) 
+# reset parties to french-speaking parties
+parties <- c('PTB', 'PS', 'Ecolo', 'Défi', 'Les Engagés', 'MR')
+```
+
+# 16
+
+Le poids Défi x "Reconnaissance faciale" est aberrant (17 contre maximum 7 ailleurs). Peut-être a-t-il été ajusté "à la main" après le calcul de la matrice ? Notons qu'on voit aussi une valeur décalée pour le questionnaire flamand.
+
+```{r}
+#| echo: false
+#| warning: false
+p1 <- weights_french_long %>%
+        ggplot(aes(x=weight, fill=after_stat(x))) +
+        geom_histogram(binwidth=1, center=0.5) +
+        scale_fill_viridis(discrete=FALSE) +
+        annotate('text', x=12.5, y=10, label='Défi x Rec. faciale') +
+        annotate('segment', x=15, xend=17.5, y=8, yend=2, color='red') +
+        labs(title='Poids pour 35 questions de base FR', x='Poids', y='Compte') +
+        theme(legend.position='none')
+p2 <- weights_flemish_long %>%
+        ggplot(aes(x=weight, fill=after_stat(x))) +
+        geom_histogram(binwidth=1, center=0.5) +
+        scale_fill_viridis(discrete=FALSE) +
+        annotate('text', x=7, y=32, label='Groen x Abortus 18 weken') +
+        annotate('segment', x=8, xend=10.5, y=30, yend=2, color='red') +
+        labs(title='Poids pour 35 questions de base FL', x='Poids', y='Compte') +
+        theme(legend.position='none') +
+        scale_x_continuous(breaks=c(0, 5, 10))
+p1 + p2
+```
+
+# 17
+
+Donc, à cause du système de pondération, changer la réponse à une seule question peut avoir un effet disproportionné. C'est plus ou moins vrai en fonction de la question.
+
+![](images/one_change_effect.png)
+
+# 18
+
+Le clustering thématique (poids communs des Q) pourrait être amélioré. Certains clusters n'ont pas beaucoup de sens (Ukraine dans l'UE avec financement des partis politiques ou autos chinoises avec le militaire). Et beaucoup de questions "orphelines" pourraient être groupées.
+
+# 19
+
+Un test intéressant est de regarder quel parti arrive 1er le plus souvent si on répond au hasard. Ceci permet de détecter une forme de biais méthodologique. En répetant 100000x, on voit que Défi et MR arrivent 1er le + souvent, et le PS arrive 1er le - souvent. 
+
+```{r}
+#| echo: false
+#| warning: false
+winners <- read_csv('data/base_french_random_winner.csv')
+winners <- winners %>%
+        mutate(party=factor(party, levels=parties))
+winners <- winners %>%
+        group_by(party) %>%
+        summarise(num_wins=sum(num_wins))
+# uncomment to re-generate the plot
+#winners %>% ggplot(aes(x="", y=num_wins, fill=reorder(party, num_wins))) +
+#        geom_bar(stat="identity", width=1, color="white") +
+#        coord_polar("y", start=0) +
+#        scale_fill_manual(values = c('MR' = '#002eff',
+#                                      'Ecolo' = '#81bc02',
+#                                      'Défi' = '#e21381',
+#                                      'Les Engagés' = '#17d3c5',
+#                                      'PTB' = '#ef4235',
+#                                      'PS' = '#e61513')) +
+#        guides(fill = guide_legend(title = "Parti")) +
+#        theme_void()
+```
+
+![](images/random_winners.png)
+
+# 20
+
+Dans ce dernier test on commence par répondre à 100% comme un parti, et on regarde si ce parti reste 1er après avoir changé 2 reponses au hasard (10000x/parti). On observe des différences assez marquées entre partis qu'on peut au moins en partie attribuer à des différences de similarité.
+
+```{r}
+#| echo: false
+#| warning: false
+t <- read_csv('data/base_french_party_stability.csv')
+t <- t %>%
+        mutate(from_party=ifelse(from_party=='les-engages', 'les_engages', from_party)) %>%
+        mutate(to_party=ifelse(to_party=='les-engages', 'les_engages', to_party))
+t <- t %>%
+        mutate(from_party=factor(from_party, levels=parties)) %>%
+        mutate(to_party=factor(to_party, levels=parties))
+# uncomment to re-generate the table
+#table(t) %>% formattable()
+```
+
+![](images/stability.png)
+
+# 21
+
+Un grand merci à Shean Massey pour son aide avec le déchiffrage du code javascript et à plusieurs collègues pour leurs commentaires.
+
+## 22
+
+Les données et le code (R et Python) pour générer les figures et explorer le comportement du Test sont ici: https://github.com/AlexIrrthum/test_electoral_2024
