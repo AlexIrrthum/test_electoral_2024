@@ -5,12 +5,12 @@ Pour calculer les scores des partis pour une liste de 35 réponses aux questions
 `python test_electoral.py 'adddadadaddaadaaaddddaaddadaadaddaa'`
 
 Avec
-a: agree (D'accord)
-A: Agree (D'accord) avec Boost
-d: disagree (Pas d'accord)
-D: Disagree (Pas d'accord) avec Boost
-u: undecided (Indécis)
-U: Undecided (Indécis) avec Boost
+* a: agree (D'accord)
+* A: Agree (D'accord) avec Boost
+* d: disagree (Pas d'accord)
+* D: Disagree (Pas d'accord) avec Boost
+* u: undecided (Indécis)
+* U: Undecided (Indécis) avec Boost
 
 Pour voir comment utiliser le code de calcul des scores dans un script ou dans le REPL:
 
