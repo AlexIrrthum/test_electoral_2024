@@ -12,7 +12,9 @@ Avec
 * u: undecided (Indécis)
 * U: Undecided (Indécis) avec Boost
 
-Pour voir comment utiliser le code de calcul des scores dans un script ou dans le REPL:
+Pour voir comment utiliser le code dans un script ou le REPL, voir docstring dans `test_electoral.py`
+
+Pour vérifier que le code de calcul donne les résultats attendus:
 
 `python -m doctest -v test_electoral.py`
 
