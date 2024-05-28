@@ -156,7 +156,7 @@ class Database:
     def get_party_answers(self, party, format='string'):
         '''
         Get the list of agree/disagree answers for a party
-        format == 'strind' -> 'adddadaadddadaddaa...'
+        format == 'string' -> 'adddadaadddadaddaa...'
         format == 'dict' -> { 'Q1': 'agree',... }
         '''
         s = ''
