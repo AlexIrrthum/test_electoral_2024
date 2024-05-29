@@ -106,7 +106,6 @@ counts_summary <- counts %>%
     mutate(kw_ratio=100*kw_sum/word_sum) %>%
     mutate(party_label=paste('% mots police/justice global = ', round(kw_ratio, 3)))
 counts %>%
-    filter(party != 'XXX') %>%
     ggplot(aes(x=page, y=kw_ratio)) +
     geom_bar(stat='identity') +
     facet_grid(party ~ .) +
@@ -216,7 +215,6 @@ qa <- qa %>%
 qa <- qa %>% na.omit()
 questions <- qa %>% pull(question)
 resumes <- qa %>% pull(short)
-#qa_long <- qa %>% dplyr::select(-Texte, -Resume) %>% pivot_longer(cols=-Question, names_to="Parti", values_to="Reponse") %>% mutate(Parti=factor(Parti, levels=partis))
 qa_for_heatmap <- qa %>%
         dplyr::select(-c(question, id, short)) %>%
         as.matrix()
