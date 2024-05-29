@@ -22,4 +22,8 @@ Pour regénérer les tables des données (prend quelques secondes):
 
 `python create_data_tables.py`
 
-Le code pour générer les figures se trouve dans `analyse.qmd`
+Pour regénérer la table des fréquences des mots police/justice dans les pages des programmes:
+
+`python keyword_counter.py > data/police_justice_keyword_counts.csv`
+
+Le code R pour générer les figures des posts X/Twitter se trouve dans `analyse.qmd`
