@@ -1,0 +1,300 @@
+---
+title: "Une analyse critique du Test Electoral RTBF 2024"
+format: html
+---
+
+```{r}
+#| echo: false
+#| output: false
+library(tidyverse)
+library(ComplexHeatmap)
+library(viridis)
+library(patchwork)
+library(formattable)
+library(plotly)
+```
+
+![](images/test_electoral_banner.png)
+
+Publié le Mercredi 22 mai 2024 par Alexandre Irrthum (alexandre.irrthum@gmail.com)
+
+Le [Test Électoral 2024](https://www.rtbf.be/test-electoral) nous est vendu à grand renfort de publicité, sur les ondes de la RTBF et ailleurs, comme l'outil parfait pour l'électeur indécis qui veut se faire une opinion sur l'offre des partis politiques belges avant les élections de juin 2024.  Un tel test est un outil précieux dans une démocratie, mais il doit être transparent sur sa méthodologie et ouvert à un examen minutieux.
+
+Pour rappel, le Test nous demande de répondre à 35 questions, compare nos réponses à celles des partis politiques et nous indique le (ou les) parti(s) dont nous sommes le plus proche. Un aspect important du test est le système de pondération, qui donne plus ou moins de poids à une réponse particulière dans le calcul des scores des partis, en fonction de la question et du parti considérés. Enfin, un système de boost permet de donner plus de poids aux questions qui nous semblent particulièrement importantes.
+
+Je me suis penché sur le Test Électoral avec mon regard de professionnel de l'analyse des données et du développement des systèmes informatiques, même si mon domaine d'expertise est la recherche sur le cancer et pas les sciences politiques.
+
+Dans la première partie de ce texte, je rappelle pourquoi la transparence est importante pour un outil comme le Test Électoral et pourquoi cette transparence fait ici défaut. Ensuite, je montre pourquoi le Test pose question sur plusieurs aspects méthodologiques. Enfin, dans la dernière partie, je propose une série de pratiques qui pourraient être mises en œuvre pour améliorer la transparence, inspirées de ce qui se fait pour les publications dans le domaine biomédical et ailleurs dans les sciences.
+
+La plupart des analyses présentées ici ont été postées sur X/Twitter, sous une forme plus condensée.
+
+### L'importance de la transparence
+
+D'après le rédacteur en chef de *La Libre Belgique*, près d'un million de Belges auraient fait le Test Électoral le jour de son lancement national ([lien](https://x.com/ddemeeus/status/1779946520374022479)). Dans une interview à *De Standaard*, deux des auteurs du Test mentionnent que le Test aurait atteint près de 3,5 millions de Flamands lors des élections précédentes ([lien](https://www.standaard.be/cnt/dmf20240414_97229245)). On imagine l'impact que le Test peut avoir sur les résultats des élections. 
+
+Seule la transparence permet à des personnes indépendantes de s'assurer que le Test est dépourvu autant que possible de biais méthodologiques. Par ailleurs, un Test qui n'apparaîtrait pas comme irréprochable risque d'accréditer l'idée regrettable des "élections, piège à cons" et de favoriser la désaffection des électeurs. Enfin, le manque de transparence du Test et le fait qu'il ne puisse pas être facilement analysé risquent aussi de le rendre plus facile à exploiter par ceux qui voudraient tenter de manipuler l'élection. Soyons clair, je ne pense pas du tout qu'il y ait une volonté malicieuse ou une ingérence dans le cas du Test Électoral. Mais la meilleure façon de prévenir les manipulations reste, à mon avis, la transparence totale, au niveau des données, du code informatique et des méthodes.
+
+La méthode de calcul des scores des partis et la méthodologie utilisée n'étant pas disponibles (à part de vagues explications dans les FAQ), j'ai demandé au Test Électoral, via Twitter et par email, de me fournir ces informations. Malgré mes rappels, je n'ai pas reçu de réponse (voir l'annexe 2 pour la ligne du temps de mes tentatives de communication avec le Test Électoral). Update au 26 mai 2024: suite à un email aux deux responsables académiques du Test (Stefaan Walgrave, UAntwerp, Benoît Rihoux, UCLouvain) le 22 mai, Stefaan Walgrave m'a contacté et nous avons eu une conversation au sujet du Test le 24 mai.
+
+N'ayant pas reçu de réponse à ma demande d'informations sur les méthodes, je me suis plongé dans le code informatique pour identifier et extraire la méthode de calcul et la matrice de pondération des réponses.
+
+![](images/platform_code.png)
+
+Pour être certain de la comprendre, j'ai répliqué exactement la méthode de calcul (y compris l'effet des réponses "Pas d'opinion" et l'effet du Boost) dans mon propre code informatique. Ces données et ce code, qui permettent d'étudier en détail le comportement du Test, sont disponibles [ici](https://github.com/AlexIrrthum/test_electoral_2024)
+
+### Un test pas fiable
+
+Qu'est-ce-qu'on veut dire par un test pas fiable?
+
+Imaginons qu'une électrice fasse le Test Électoral en répondant comme si elle était d'accord à 100% avec l'un des partis. À la fin du questionnaire elle voit que son score correspond à 100% au parti en question. Logique. Maintenant, elle change d'avis sur une seule question. Elle est toujours d'accord avec le parti pour 34 des 35 propositions mais, à sa grande surprise, le score du parti est tombé à 69% et un autre parti est passé 1er. Pour ajouter à son incompréhension, elle fait le compte des propositions pour lesquelles elle est d'accord avec cet autre parti (maintenant 1er) et elle n'en trouve que 23 sur 35.
+
+Que penserait l'électrice du Test Électoral ? Probablement qu'il n'est pas fiable (au sens où on ne peut pas s'y fier pour se faire une opinion). Et bien, c'est exactement ce qu'on observe dans la réalité.
+
+{{< video images/test_electoral_demo.mov >}}
+
+Si vous voulez faire cette expérience vous-même sur la plateforme du Test Électoral, j'explique dans l'annexe 1 comment vous y prendre.
+
+Ce comportement s'explique par le système de pondération des réponses, certaines questions ayant 10 fois plus de poids que d'autres. Le Boost, combiné avec le système de pondération aberrant, rend les résultats du test encore plus instables.
+
+Notons que la question choisie ici est particulièrement problématique, mais l'instabilité existe aussi, dans une moindre mesure, avec beaucoup d'autres questions. Plusieurs personnes m'ont fait part de leur perplexité face au côté erratique du test.
+
+![](images/confused_voter.webp){width=80%}
+
+### La matrice des poids
+
+Le graphique suivant est une représentation de la matrice des poids des questions pour chaque parti, c'est-à-dire l'importance de la question dans le calcul du score du parti. Vous pouvez observer les valeurs exactes des poids en promenant votre pointeur de souris dans la matrice (c'est la valeur z). Notez que ceci fonctionne mieux sur ordinateur que sur smartphone. Le nombre à côté du nom de la question est la moyenne des poids pour les six partis.
+
+```{r}
+#| echo: false
+#| warning: false
+parties <- c('PTB', 'PS', 'Ecolo', 'Défi', 'Les Engagés', 'MR')
+weights <- read_csv('data/base_french_weights.csv')
+themes <- read_csv('data/base_french_themes.csv')
+weights <- weights %>% left_join(themes)
+weights <- weights %>%
+        rowwise() %>%
+        mutate(weight_mean=mean(c_across(all_of(parties))))
+q <- weights %>% pull(question)
+s <- weights %>% pull(short)
+m <- weights %>% pull(weight_mean)
+qsm <- paste(q, ' ', s, ' (', round(m, digits=3), ')', sep='')
+weights$question <- factor(qsm, levels=rev(qsm))
+weight_matrix <- as.matrix(weights %>% dplyr::select(all_of(parties)))
+weight_matrix <- weight_matrix[nrow(weight_matrix):1,]
+rownames(weight_matrix) <- rev(qsm)
+fig <- plot_ly(x=colnames(weight_matrix), y=rownames(weight_matrix), z = weight_matrix, type = "heatmap")  %>%
+    layout(yaxis = list(tickfont = list(size = 9)))
+config(fig, displayModeBar = FALSE)
+```
+
+On voit que les écarts des poids entre questions peuvent être très importants, alors que les écarts entre partis pour une question particulière sont en général relativement faibles.
+
+Une valeur saute aux yeux dans la matrice des poids parce qu'elle est beaucoup plus élevée que toutes les autres valeurs. Il s'agit du poids de la question "Police reconnaissance faciale" pour le parti Défi. Ce poids est de 17 alors qu'il est autour de 7 pour les cinq autres partis. C'est intéressant parce que cette combinaison question x parti n'a rien de particulier et un algorithme raisonnable de calcul de la matrice des poids ne devrait pas produire une valeur aussi aberrante.
+
+Les FAQ du Test expliquent que les poids question x parti sont obtenus par une analyse automatique des textes des programmes des partis, sur base de la fréquence de mots clés thématiques. Une explication possible pour cette valeur extrême serait donc que Défi donne dans son programme une place beaucoup plus importante aux questions police/justice que les autres partis. Mais ce n'est pas ce que j'observe lorsque je calcule moi-même les fréquences d'une liste (disponible [ici](https://github.com/AlexIrrthum/test_electoral_2024/blob/master/data/police_justice_keywords.txt)) de mots police/justice dans les programmes. On voit dans le graphique que Défi parle même légèrement moins de police/justice, mais les fréquences sont très proches. Notez que je n'ai pas obtenu de pdf du programme pour le PTB, donc le PTB manque dans cette analyse.
+
+```{r}
+#| echo: false
+#| warning: false
+counts <- read_csv("data/police_justice_keyword_counts.csv")
+counts <- counts %>%
+    mutate(kw_ratio=100 * kw_count / word_count) %>%
+    mutate(kw_ratio=if_else(is.na(kw_ratio), 0, kw_ratio))
+counts_summary <- counts %>%
+    group_by(party) %>%
+    summarize(kw_sum=sum(kw_count), word_sum=sum(word_count)) %>%
+    mutate(kw_ratio=100*kw_sum/word_sum) %>%
+    mutate(party_label=paste('% mots police/justice global = ', round(kw_ratio, 3)))
+counts %>%
+    filter(party != 'XXX') %>%
+    ggplot(aes(x=page, y=kw_ratio)) +
+    geom_bar(stat='identity') +
+    facet_grid(party ~ .) +
+    labs(x="Page du programme au format pdf", y="% de mots police/justice dans la page") +
+    geom_text(data=counts_summary,
+              mapping=aes(x=800, y=8.5, label=party_label))
+```
+
+Donc cette valeur extrême reste mystérieuse mais, dans tous les cas, elle pose problème parce que selon que l'électeur réponde "Pas d'accord" ou "D'accord" à cette question "Police reconnaisance faciale", Défi a déjà un avantage (ou un désavantage selon la réponse) disproportionné au niveau de son score, ce qui fait qu'il va trop facilement (ou trop difficilement) se retrouver premier au final.
+
+```{r}
+#| echo: false
+#| warning: false
+weights <- read_csv('data/base_french_weights.csv')
+themes <- read_csv('data/base_french_themes.csv')
+weights <- weights %>% left_join(themes)
+weights <- weights %>%
+        rowwise() %>%
+        mutate(weight_mean=mean(c_across(all_of(parties))))
+q <- weights %>% pull(question)
+s <- weights %>% pull(short)
+m <- weights %>% pull(weight_mean)
+qsm <- paste(q, ' ', s, ' (', round(m, digits=3), ')', sep='')
+weights$question <- factor(qsm, levels=rev(qsm))
+weights_french_long <- weights %>%
+        dplyr::select(question, parties, theme, theme_color) %>%
+        pivot_longer(cols=-c(question, theme, theme_color), names_to='parti', values_to='weight') %>%
+        mutate(parti=factor(parti, levels=parties)) 
+
+parties <- c('Vlaams Belang','Vooruit','Open VLD','CD&V','Groen','PVDA','NVA')
+weights <- read_csv('data/base_flemish_weights.csv')
+weights <- weights %>%
+        rowwise() %>%
+        mutate(weight_mean=mean(c_across(all_of(parties))))
+q <- weights %>% pull(question)
+s <- weights %>% pull(short)
+m <- weights %>% pull(weight_mean)
+qsm <- paste(q, ' ', s, ' (', round(m, digits=3), ')', sep='')
+weights$question <- factor(qsm, levels=rev(qsm))
+weights_flemish_long <- weights %>%
+        dplyr::select(-id, -short, -weight_mean) %>%
+        pivot_longer(cols=-question, names_to='parti', values_to='weight') %>%
+        mutate(parti=factor(parti, levels=parties)) 
+# reset parties to french-speaking parties
+parties <- c('PTB', 'PS', 'Ecolo', 'Défi', 'Les Engagés', 'MR')
+```
+```{r}
+#| echo: false
+#| warning: false
+p1 <- weights_french_long %>%
+        ggplot(aes(x=weight, fill=after_stat(x))) +
+        geom_histogram(binwidth=1, center=0.5) +
+        scale_fill_viridis(discrete=FALSE) +
+        annotate('text', x=12.5, y=10, label='Défi x Rec. faciale') +
+        annotate('segment', x=15, xend=17.5, y=8, yend=2, color='red') +
+        labs(title='Poids pour 35 questions de base FR', x='Poids', y="Nombre de valeurs dans l'intervalle") +
+        theme(legend.position='none')
+p2 <- weights_flemish_long %>%
+        ggplot(aes(x=weight, fill=after_stat(x))) +
+        geom_histogram(binwidth=1, center=0.5) +
+        scale_fill_viridis(discrete=FALSE) +
+        annotate('text', x=7, y=32, label='Groen x Abortus 18 weken') +
+        annotate('segment', x=8, xend=10.5, y=30, yend=2, color='red') +
+        labs(title='Poids pour 35 questions de base FL', x='Poids', y="Nombre de valeurs dans l'intervalle") +
+        theme(legend.position='none') +
+        scale_x_continuous(breaks=c(0, 5, 10))
+# We don't show the histograms as they don't add a lot to the story
+#p1 + p2
+```
+### Des sujets qui ne comptent pas
+
+On voit dans l'extrait de la matrice des poids ci-dessous que les quatre questions immigration/intégration ont un poids (0.55) 10x moindre que la question "Place des cyclistes sur routes" (5.45), et donc un effet négligeable sur le résultat.
+
+```{r, fig.height=2}
+#| echo: false
+#| warning: false
+weight_matrix <- weight_matrix[c(36-35, 36-34, 36-30, 36-13, 36-2),] 
+fig <- plot_ly(x=colnames(weight_matrix), y=rownames(weight_matrix), z = weight_matrix, type = "heatmap")  %>%
+    layout(yaxis = list(tickfont = list(size = 12)))
+config(fig, displayModeBar = FALSE)
+```
+
+Ceci est trompeur parce que l'électeur pour lequel ces questions sur l'immigration/intégration sont importantes (quelle que soit son opinion) aura l'impression que ses préoccupations sont largement prises en compte dans le Test, avec quatre questions, alors que ses réponses auront très peu d'impact sur le classement des partis. La seule réponse sur la place des cyclistes aura plus de deux fois plus d'impact que les quatre questions immigration/intégration réunies. Sur quelle base justifie-t-on cette forme de déclassement d'un sujet par rapport à un autre ?
+
+Plus généralement, comment sont choisis les poids des questions et groupes de questions ? Les 35 réponses d'un utilisateur sur la plateforme du Test sont envoyées de manière anonyme vers un serveur informatique et constituent une base de données dont on suppose qu'elle sera exploitée à des fins de recherche. Les bases de données obtenues lors des éditions précédentes du Test ont-elles été utilisées pour la détermination des poids des questions, et si oui, de quelle manière ?
+
+Au delà des poids donnés aux différents sujets, le choix des sujets peut se discuter et chacun aura sa propre opinion, forcément subjective, sur les sujets importants. Mais en 2024, avec un monde qui brûle littéralement, l'effondrement de la biodiversité, des guerres à nos portes et une exacerbation des haines, on pourrait s'attendre à des questions sur la décroissance, la protection du vivant, la démocratie participative, la désobéissance civile, le contrôle des réseaux sociaux. Et pas une seule question sur la culture...
+
+### Les partis de gauche, tous pareils ?
+
+Ce qui m'a poussé au départ à essayer de comprendre le fonctionnement du Test Électoral 2024, c'est la difficulté du Test à différencier les partis de gauche. On voit ci-dessous les résultats d'un test réel, où les trois partis souvent considérés comme de gauche, Écolo, PS et PTB, reçoivent tous le même score. Les cinq questions supplémentaires, censées départager les partis avec des scores trop proches, ont brouillé les cartes encore plus.
+
+![](images/test_results.png){width=80%}
+
+Même si on modifie les réponses, les trois partis de gauche, et en particulier PS et Écolo, auront toujours des scores très proches. On comprend pourquoi le Test Électoral a difficile à départager les partis de gauche quand on compare le nombre de réponses différentes entre partis, comme dans cette table:
+
+```{r}
+#| echo: false
+#| warning: false
+qa <- read_csv('data/base_french_answers.csv')
+qa <- qa %>%
+        mutate(across(parties, ~ case_when(. == 'agree' ~ TRUE,
+                                           . == 'disagree' ~ FALSE,
+                                           . == 'undecided' ~ NA))) %>%
+        relocate(parties)
+# remove useless Q9
+qa <- qa %>% na.omit()
+questions <- qa %>% pull(question)
+resumes <- qa %>% pull(short)
+#qa_long <- qa %>% dplyr::select(-Texte, -Resume) %>% pivot_longer(cols=-Question, names_to="Parti", values_to="Reponse") %>% mutate(Parti=factor(Parti, levels=partis))
+qa_for_heatmap <- qa %>%
+        dplyr::select(-c(question, id, short)) %>%
+        as.matrix()
+qa_for_heatmap <- -1 * qa_for_heatmap
+rownames(qa_for_heatmap) <- paste(questions, resumes)
+dist2(t(qa_for_heatmap), pairwise_fun = function(x, y) sum(x != y))
+```
+
+PS et Ecolo ne diffèrent dans leurs réponses que pour 5 questions, avec des distances faibles pour le trio PS-Ecolo-PTB comparés aux autres partis. Donc ces partis sont plus difficilement différenciables que les autres.
+ 
+Le risque, c'est que l'électeur de gauche indécis, pas aidé par le questionnaire, décide de voter au hasard, pour le (ou la) plus sympa, ou "utile". On comprend comment ceci peut pénaliser le parti qui aurait dû légitimement recevoir son suffrage sur base de préférences mieux définies.
+
+On pourrait dire que ceci reflète une proximité réelle entre partis de gauche. Peut-être, mais c'est précisément pour cette raison qu'il est important de choisir des questions discriminantes. Le but du Test n'est pas de mettre en évidence les convergences entre partis, mais d'aider l'électeur à faire la différence entre ceux-ci.
+
+### Le sens des mots
+
+Un autre aspect déconcertant du Test est la façon dont les textes des programmes des partis sont parfois traduits en D'accord / Pas d'accord. On voit ici comment les textes des partis ont été interprétés pour la question "L'UE ne doit pas prendre part au conflit en Palestine". La question est évidemment ambigüe, mais, sur base des textes présentés, les partis semblent d'accord sur une intervention diplomatique, mais pas militaire. 
+
+![](images/question_20.png){width=80%}
+
+Difficile alors de comprendre pourquoi certains se retrouvent avec "D'accord" et d'autres avec "Pas d'accord". Les FAQ expliquent que les partis ont validé toutes les réponses. Ça laisse songeur.
+
+### Et après, on fait quoi ?
+
+Dans le domaine biomédical, une série de scandales et une crise de reproductibilité des résultats ont mené à la mise en place de principes et de gardes-fou dont on pourrait s'inspirer pour le Test Électoral.
+
+Le premier principe, appliqué aujourd'hui par les meilleurs journaux scientifiques, est le partage obligatoire des données et du code informatique qui soutiennent les résultats publiés. Ceci permet à d'autres de reproduire les analyses, limitant les risques d'erreurs ou de manipulations, et de poursuivre la recherche dans d'autres directions. Les mêmes règles devraient prévaloir pour un test électoral. D'ailleurs, la Déclaration de Lausanne de 2013 sur les applications de conseil au vote, que le Test annonce suivre dans les FAQ, préconise la transparence sur l'algorithme de matching élécteur-parti. Cette transparence est indispensable et l'exigence de transparence devrait être une question trans-partisane.
+
+Notons en passant que le test électoral Le Soir/SudInfo/RTL/ULB n'est pas transparent non plus sur les méthodes utilisées. Un analyste indépendant, Thomas Delclite, s'est livré à un exercice de transparence similaire à celui-ci pour cet autre test et il présente ce travail [ici](https://x.com/TDelclite/status/1780556695137079796)
+
+Au niveau des collaborations, on voit que quinze universités, entreprises publiques ou privées ont participé au développement et à la mise en œuvre du Test. En comptant minimum deux personnes par partenaire, cela fait beaucoup de monde. 
+
+![](images/partners.png)
+
+Si les responsables et partenaires académiques et techniques du Test (UAntwerp, UCLouvain, Tree Company, Bits of Love) sont clairement identifiés dans les FAQ du Test, quel a été le rôle des autres partenaires (médias, UNamur, ULB) ? Pourquoi ne pas appliquer ici la règle de transparence que beaucoup de journaux scientifiques imposent pour les publications, c'est-à-dire de préciser quelle a été la contribution exacte de chaque collaborateur ?
+
+Enfin, la recherche médicale a été largement entachée par des affaires de conflits d'intérêt où des chercheurs académiques recevaient sans le divulguer des sommes d'argent (ou d'autres avantages) de compagnies pharmaceutiques. Les journaux et les conférences prennent aujourd'hui très au sérieux ces conflits d'intérêt et exigent que tout soit déclaré. Pour le Test Électoral aussi, on aimerait savoir s'il existe des liens contractuels ou financiers, actuels ou passés, par exemple entre contributaires et partis politiques.
+
+Lors des élections futures, les tests électoraux les plus en vue seront probablement des robots conversationnels type ChatGPT. Dès maintenant, on peut relativement facilement prendre un modèle comme le récent GPT-4o, lui faire ingérer des informations sur les programmes des partis, et converser avec lui sur ces programmes. D'ici peu, on pourra avoir cette conversation en parlant en Français ou en Néerlandais. Ceci permet d'envisager un test électoral vraiment pertinent, qui s'adapte aux priorités de l'électeur. Mais, faute d'une transparence irréprochable et de tests approfondis, ceci décuple les risques de biais et les possibilités de manipulation. À en juger par la situation actuelle, nous ne sommes probablement pas prêts pour cette évolution.
+
+### Remerciements
+
+Un grand merci à Shean Massey pour son aide avec le déchiffrage du code javascript et à plusieurs collègues pour leurs commentaires.
+
+### Qui je suis ?
+
+Alexandre Irrthum. J'ai une formation de bioingénieur et un doctorat en sciences biomédicales (génétique). Mon travail est le conseil scientifique et l'analyse de données cliniques et moléculaires dans le domaine de la recherche sur le cancer du sein, et la mise en place de systèmes informatiques pour l'acquisition et la gestion de ces données.
+
+### Annexe 1: une expérience pour comprendre l'instabilité "pathologique" du test
+
+Sur la plateforme du Test, on répond exactement avec cette séquence de 35 réponses 'DPPDPPDPDPPDPDDDDDPDPDDDDDPDPPPPPDP' (avec D = D’accord et P = Pas d’accord). On choisit ensuite "Continuer sans coup de boost". On voit que Défi arrive 1er avec 100%. Ensuite on clique sur "Modifier vos réponses" et on modifie la réponse à la question 6 “Police reconnaissance faciale” en D’accord + Boost. On voit que Les Engagés sont maintenant 1er, avec seulement 23/35 réponses qui matchent alors qu'on est 34/35 qui matchent pour Défi. 
+
+### Annexe 2: ligne du temps des communications avec le Test Electoral
+
+Voici la ligne du temps de mes tentatives de communication avec le Test Electoral, via X/Twitter et par email. @TestElectoral sur X/Twitter et l'adresse email info@testelectoral.be sont les deux canaux recommandés pour contacter le Test Electoral.
+
+![](images/twitter_email_timeline.png)
+
+### Annexe 3: Analyse du Test par algorithme aléatoire
+
+Un test intéressant est de regarder quel parti arrive premier le plus souvent si on répond au hasard aux questions. En répetant la création d'un jeu de 35 réponses aléatoires 100000x et en regardant quel parti arrive premier, on voit que Défi et MR arrivent premier le + souvent, et le PS arrive premier le - souvent. 
+
+![](images/random_winners.png){width=80%}
+
+Bien sûr, les élécteurs ne répondent pas de façon aléatoire, mais cette analyse dit cependant quelque chose d'intéressant sur l'algorithme de calcul des scores des partis et ses biais potentiels. Deux effets expliquent probablement, au moins en partie, la répartition observée. Le premier est l'effet de la valeur aberrante de 17.5 pour la question "Police reconnaissance faciale" pour Défi. Il y a une chance sur deux de choisir la réponse "Pas d'accord" et dans ce cas Défi reçoit déjà 17.5%, ce qui le rapproche fortement de la première place. Le deuxième effet probable qui explique pourquoi MR est souvent premier et les partis de gauche plus rarement est la proximité des partis de gauche dans le questionnaire qui fait que leurs scores seront souvent très proches les uns des autres. Même si ces effets sont montrés ici avec un algorithme aléatoire, ils existent aussi pour des réponses "réelles".
+
+### Historique des principales modifications au document
+
+* 26 mai 2024
+    + clarifié dans le paragraphe sur les collaborateurs que les responsables académiques et techniques sont clairement identifiés dans les FAQ du Test.
+    + mentionné la conversation avec Stefaan Walgrave (responsable académique UAntwerp) du 24 mai 2024, dans le texte et dans la ligne du temps.
+    + ajouté un commentaire sur le test électoral Le Soir/SudInfo/RTL/ULB.
+    + interverti la section "Des sujets qui ne comptent pas" et la section "Les partis de gauche, tous pareils ?" pour une meilleure continuité du texte.
+    + ajouté la référence à l'interview des auteurs du Test dans *De Standaard*
+* 28 mai 2024
+    + modifié le paragraphe sur l'explication de la valeur aberrante pour Défi.
+    + ajouté l'annexe 3 avec le test aléatoire.
+    + ajouté un lien vers le thread X/Twitter de Thomas Delclite sur le test électoral Le Soir.
+* 29 mai 2024
+    + ajouté l'analyse des fréquences des mots police/justice dans le programmes.
+    + supprimé l'histogramme correspondant à la matrice des poids.

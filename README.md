@@ -26,4 +26,6 @@ Pour regénérer la table des fréquences des mots police/justice dans les pages
 
 `python keyword_counter.py > data/police_justice_keyword_counts.csv`
 
-Le code R pour générer les figures des posts X/Twitter se trouve dans `analyse.qmd`
+Le code quarto/R pour générer les figures des posts X/Twitter se trouve dans `analyse.qmd`
+
+Le code quarto/R pour générer la [Page web de l'analyse critique du Test Electoral](https://alexirrthum.quarto.pub/une-critique-du-test-electoral-rtbf-2024/) est dans `test_electoral_2024_blogpost.qmd`
