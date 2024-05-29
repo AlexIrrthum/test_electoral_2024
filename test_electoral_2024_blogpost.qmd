@@ -151,10 +151,7 @@ weights_flemish_long <- weights %>%
         mutate(parti=factor(parti, levels=parties)) 
 # reset parties to french-speaking parties
 parties <- c('PTB', 'PS', 'Ecolo', 'Défi', 'Les Engagés', 'MR')
-```
-```{r}
-#| echo: false
-#| warning: false
+
 p1 <- weights_french_long %>%
         ggplot(aes(x=weight, fill=after_stat(x))) +
         geom_histogram(binwidth=1, center=0.5) +
