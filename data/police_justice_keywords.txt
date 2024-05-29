@@ -1,11 +1,3 @@
-# List of police/justice keywords for the keyword frequency analysis
-#
-# To try get a comprehensive list of keywords the police/justice
-# sections from the PS, Ecolo, Défi, Engagés, MR programs were submitted
-# to GTP-4o and GPT-4o was asked to list all words related to the
-# police/justice/criminalité/prison topics
-#
-# The list was then manually curated (adding plurals and variations)
 agression
 agressions
 amende
