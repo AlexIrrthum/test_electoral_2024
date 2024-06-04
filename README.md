@@ -28,4 +28,4 @@ Pour regénérer la table des fréquences des mots-clés dans les pages des prog
 
 Le code quarto/R pour générer les figures des posts X/Twitter se trouve dans `analyse.qmd`
 
-Le code quarto/R pour générer la [Page web de l'analyse critique du Test Electoral](https://alexirrthum.quarto.pub/une-critique-du-test-electoral-rtbf-2024/) est dans `test_electoral_2024_blogpost.qmd`
+Le code quarto/R pour générer la [page web de l'analyse critique du Test Electoral](https://alexirrthum.quarto.pub/une-critique-du-test-electoral-rtbf-2024/) est dans `test_electoral_2024_blogpost.qmd`
