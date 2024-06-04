@@ -190,7 +190,7 @@ Lorsque je l'ai alerté sur la valeur apparemment anormale de Défi pour cette q
 
 On voit comment les choix des partis sur ce qu'ils communiquent exactement aux auteurs du Test peuvent avoir un effet considérable sur les poids calculés. Même le style dans lequel le document est rédigé aura une influence sur les poids, selon que le texte est plus ou moins riche en mots clés.
 
-Les listes de mots clés elle-mêmes ne sont pas totalement objectives. Dans mes mots clés immigration/intégration, je n'ai pas inclus de mots liés à la religion, considérant que ces mots se rattachent au thème laïcité/cultes. Mais d'autres choix sont possibles.
+Les listes de mots clés elle-mêmes ne sont pas totalement objectives. Dans mes mots clés immigration/intégration, je n'ai pas inclus de mots liés à la religion, considérant que ces mots se rattachent au thème laïcité/cultes. Mais d'autres choix sont possibles, avec un impact sur les scores calculés.
 
 Enfin, le rattachement d'une question à un thème ou un autre est aussi subjectif et va modifier son poids. La question sur la place des cyclistes sur les routes est-elle purement une question transports/mobilité, ou est-elle aussi une question sur l'environnement ?
 
