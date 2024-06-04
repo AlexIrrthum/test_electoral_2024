@@ -9,22 +9,27 @@ programs = {
         'PS': 'electoral_programs/Programme_PS.pdf',
         'Ecolo': 'electoral_programs/Programme_Ecolo.pdf',
         'Defi': 'electoral_programs/Programme_Defi.pdf',
+        'Defi_plus': 'electoral_programs/Programme_Defi_and_extras.pdf',
         'Engages': 'electoral_programs/Programme_Engages.pdf',
         'MR': 'electoral_programs/Programme_MR.pdf'
 }
 
-keyword_file = "data/police_justice_keywords.txt"
-
-keywords = set()
-counts_by_page = {
-        'PS': [],
-        'Ecolo': [],
-        'Defi': [],
-        'Engages': [],
-        'MR': []
+keyword_files = {
+        'police/justice': 'data/keywords_police_justice.txt',
+        'laicite/cultes': 'data/keywords_laicite_cultes.txt',
+        'immigration': 'data/keywords_immigration_integration.txt',
 }
 
-if __name__ == "__main__":
+def count_keywords(topic, keyword_file):
+    counts_by_page = {
+            'PS': [],
+            'Ecolo': [],
+            'Defi': [],
+            'Defi_plus': [],
+            'Engages': [],
+            'MR': []
+    }
+    keywords = set()
     with open(keyword_file, 'r') as f:
         for line in f:
             # ignore comment lines
@@ -45,7 +50,12 @@ if __name__ == "__main__":
                     keyword_count += 1
             counts_by_page[party].append((keyword_count, word_count))
         doc.close()
-    print("party,page,kw_count,word_count")
     for (party, counts) in counts_by_page.items():
         for i, count in enumerate(counts):
-            print(party + ',' + str(i+1) + ',' + str(count[0]) + ',' + str(count[1]))
+            print(party + ',' + str(i+1) + ',' + topic + ',' + str(count[0]) + ',' + str(count[1]))
+
+if __name__ == "__main__":
+    print("party,page,topic,kw_count,word_count")
+    for (topic, keyword_file) in keyword_files.items():
+        count_keywords(topic, keyword_file)
+
