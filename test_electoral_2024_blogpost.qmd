@@ -184,7 +184,7 @@ counts %>%
     scale_color_manual(values=c("#FFB000", "#DC267F", "#648FFF"))
 ```
 
-Dans le graphique, le panneau Défi montre les fréquences des mots clés calculées sur le programme en cinq parties de [Défi](https://www.defi.be/nos-publications/){target="_blank"}. On voit que Défi parle un peu moins du thème police/justice auquel se rattache la question "Police reconnaissance faciale" que les autres partis. Une autre observation intéressante est que Défi semble parler beaucoup plus que les autres partis du thème laïcité/cultes.
+Dans le graphique, le panneau Défi montre les fréquences des mots clés calculées sur le programme en cinq parties de [Défi](https://www.defi.be/nos-publications/){target="_blank"}. On voit que Défi parle un peu moins du thème police/justice auquel se rattache la question "Police reconnaissance faciale" que les autres partis. On voit aussi que le faible poids des questions immigration/intégration est bien lié à une place faible de ce thème dans les programmes.
 
 Lorsque je l'ai alerté sur la valeur apparemment anormale de Défi pour la question "Police reconnaissance faciale", Stefaan Walgrave m'a transmis le programme communiqué par Défi aux auteurs du Test. Le second panneau Défi_plus montre les fréquences calculées pour ce document, avec une fréquence beaucoup plus élevée pour le thème police/justice. L'explication de cette différence, c'est que ce document n'est pas le programme sensu stricto, mais le programme plus les notes thématiques, dont la longue et dense note "Justice - 100 propositions".
 
