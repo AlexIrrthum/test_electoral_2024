@@ -16,7 +16,7 @@ library(plotly)
 
 ![](images/test_electoral_banner.png)
 
-Publié le Mercredi 22 mai 2024 par Alexandre Irrthum. Update le 4 juin 2024.
+Publié le Mercredi 22 mai 2024 par Alexandre Irrthum. Update le 8 juin 2024.
 
 Le [Test Électoral 2024](https://www.rtbf.be/test-electoral){target="_blank"} nous est vendu à grand renfort de publicité, sur les ondes de la RTBF et ailleurs, comme l'outil parfait pour l'électeur indécis qui veut se faire une opinion sur l'offre des partis politiques belges avant les élections de juin 2024.  Un tel test est un outil précieux dans une démocratie, mais il doit être transparent sur sa méthodologie et ouvert à un examen minutieux.
 
@@ -261,6 +261,20 @@ Un autre aspect déconcertant du Test est la façon dont les textes des programm
 
 Difficile alors de comprendre pourquoi certains se retrouvent avec "D'accord" et d'autres avec "Pas d'accord". Les FAQ expliquent que les partis ont validé toutes les réponses. Ça laisse songeur.
 
+### Une base de données inestimable
+
+Juste avant que le Test Électoral ne nous présente les scores des partis, l'ensemble de nos réponses est envoyé, de manière anonyme, vers un serveur et sauvegardé dans une base de données. Les auteurs mentionnent ceci sur la page [Vie privée](https://www.rtbf.be/test-electoral#/privacy).
+
+Quand on regarde ce qui est envoyé exactement au serveur, on voit les réponses aux questions et aussi le temps mis pour répondre à chaque question (en millisecondes). C'est une information intéressante parce qu'elle indique si l'électeur est hésitant sur certaines questions.
+
+![](images/request_payload.png){width=80%}
+
+Il n'est pas clairement dit si d'autres informations sont sauvegardées avec les réponses aux questions, comme par exemple l'adresse IP de l'utilisateur. Du point de vue de l'exploitation de la base de données des réponses, il serait logique de sauvegarder l'adresse IP parce qu'elle permet, dans certains cas, d'obtenir une meilleure estimation du nombre d'utilisateurs uniques et de ne garder qu'un jeu de réponses par utilisateur.
+
+Cette base de données, qui recense les préférences et les hésitations de millions d'électeurs, représente une ressource inestimable pour les chercheurs en sciences politiques, pour les partis politiques mais aussi pour quiconque voudrait s'ingérer dans la vie politique du pays. Un parti politique muni de cette base de données (ou de celle du Test Électoral 2019) pourrait modifier son programme, sa campagne, ou même ses réponses "D'accord/Pas d'accord" au Test pour améliorer son score et grappiller des suffrages. Un agitateur pourrait l'utiliser pour identifier les plans de clivage au sein de notre société ou au sein d'un groupe de citoyens et les exploiter.
+
+D'où la question la plus importante liée au Test Électoral: qui exactement a accès ou aura accès à la base de données des réponses, et qui a eu accès à celle de l'édition précédente du Test (2019). Le fichier de la base de données, avec les réponses de millions d'électeurs, tient sur une modeste clé USB et, sauf mise en place d'un niveau de sécurité informatique quasi militaire, il est difficile de se prémunir contre sa fuite. Plutôt que de miser sur la "sécurité par l'obscurité" et de risquer une asymétrie d'information préjudiciable à la démocratie (par exemple si un seul parti politique avait accès au fichier), la meilleure solution me semble être ici aussi la transparence, avec la mise dans le domaine public de ces données.
+
 ### Et après, on fait quoi ?
 
 Voici ma liste de propositions pour un futur Test Électoral:
@@ -273,6 +287,9 @@ Voici ma liste de propositions pour un futur Test Électoral:
 - s'assurer que les nombres de questions discriminantes entre paires de partis ne soient pas trop disproportionnés.
 - ne pas hésiter à mettre en cause les réponses "D'accord/Pas d'accord" des partis quand elles sont en contradiction avec les textes des programmes.
 - utiliser et diffuser des visualisations de données comme je l'ai fait ici pour mettre en évidence des anomalies (ou absence d'anomalies) dans le test.
+- prévoir une courte phase de beta-testing avec des testeurs indépendants des auteurs du Test avant sa mise en production.
+- divulger la liste complète des personnes ou organisations qui ont eu ou auront accès à la base de données des réponses (y compris pour les éditions précédentes).
+- envisager de rendre publique la base de données des réponses au Test.
 
 Lors des élections futures, les tests électoraux les plus en vue seront probablement des robots conversationnels type ChatGPT. Ceci permet d'envisager un test électoral vraiment pertinent, qui s'adapte aux priorités de l'électeur. Mais, faute d'une transparence irréprochable et de tests approfondis, ceci décuple les risques de biais et les possibilités de manipulation. Il est important de se préparer à cette évolution.
 
@@ -288,9 +305,9 @@ Alexandre Irrthum. J'ai une formation de bioingénieur et un doctorat en science
 
 Sur la plateforme du Test, on répond exactement avec cette séquence de 35 réponses 'DPPDPPDPDPPDPDDDDDPDPDDDDDPDPPPPPDP' (avec D = D’accord et P = Pas d’accord). On choisit ensuite "Continuer sans coup de boost". On voit que Défi arrive 1er avec 100%. Ensuite on clique sur "Modifier vos réponses" et on modifie la réponse à la question 6 “Police reconnaissance faciale” en D’accord + Boost. On voit que Les Engagés sont maintenant 1er, avec seulement 23/35 réponses qui matchent alors qu'on est 34/35 qui matchent pour Défi. 
 
-### Annexe 2: ligne du temps des communications avec le Test Electoral
+### Annexe 2: ligne du temps des communications avec le Test Électoral
 
-Voici la ligne du temps de mes tentatives de communication avec le Test Electoral, via X/Twitter et par email. @TestElectoral sur X/Twitter et l'adresse email info@testelectoral.be sont les deux canaux recommandés pour contacter le Test Electoral.
+Voici la ligne du temps de mes tentatives de communication avec le Test Électoral, via X/Twitter et par email. @TestElectoral sur X/Twitter et l'adresse email info@testelectoral.be sont les deux canaux recommandés pour contacter le Test Électoral.
 
 ![](images/twitter_email_timeline.png)
 
@@ -301,23 +318,3 @@ Un test intéressant est de regarder quel parti arrive premier le plus souvent s
 ![](images/random_winners.png){width=80%}
 
 Bien sûr, les élécteurs ne répondent pas de façon aléatoire, mais cette analyse dit cependant quelque chose d'intéressant sur l'algorithme de calcul des scores des partis et ses biais potentiels. Deux effets expliquent probablement, au moins en partie, la répartition observée. Le premier est l'effet de la valeur aberrante de 17.5 pour la question "Police reconnaissance faciale" pour Défi. Il y a une chance sur deux de choisir la réponse "Pas d'accord" et dans ce cas Défi reçoit déjà 17.5%, ce qui le rapproche fortement de la première place. Le deuxième effet probable qui explique pourquoi MR est souvent premier et les partis de gauche plus rarement est la proximité des partis de gauche dans le questionnaire qui fait que leurs scores seront souvent très proches les uns des autres. Même si ces effets sont montrés ici avec un algorithme aléatoire, ils existent aussi pour des réponses "réelles".
-
-### Historique des principales modifications au document
-
-* 26 mai 2024
-    + clarifié dans le paragraphe sur les collaborateurs que les responsables académiques et techniques sont clairement identifiés dans les FAQ du Test.
-    + mentionné la conversation avec Stefaan Walgrave (responsable académique UAntwerp) du 24 mai 2024, dans le texte et dans la ligne du temps.
-    + ajouté un commentaire sur le test électoral Le Soir/SudInfo/RTL/ULB.
-    + interverti la section "Des sujets qui ne comptent pas" et la section "Les partis de gauche, tous pareils ?" pour une meilleure continuité du texte.
-    + ajouté la référence à l'interview des auteurs du Test dans *De Standaard*
-* 28 mai 2024
-    + modifié le paragraphe sur l'explication de la valeur aberrante pour Défi.
-    + ajouté l'annexe 3 avec le test aléatoire.
-    + ajouté un lien vers le thread X/Twitter de Thomas Delclite sur le test électoral Le Soir.
-* 29 mai 2024
-    + ajouté l'analyse des fréquences des mots clés dans les programmes.
-    + supprimé l'histogramme correspondant à la matrice des poids.
-* 4 juin 2024
-    + ajouté l'explication de la valeur aberrante (outlier) pour Défi
-    + ajouté les propositions pour les tests futurs
-    + réorganisé le texte
