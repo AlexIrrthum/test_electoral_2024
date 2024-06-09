@@ -261,7 +261,7 @@ Un autre aspect déconcertant du Test est la façon dont les textes des programm
 
 Difficile alors de comprendre pourquoi certains se retrouvent avec "D'accord" et d'autres avec "Pas d'accord". Les FAQ expliquent que les partis ont validé toutes les réponses. Ça laisse songeur.
 
-### Une base de données inestimable
+### Une précieuse base de données
 
 Juste avant que le Test Électoral ne nous présente les scores des partis, l'ensemble de nos réponses est envoyé, de manière anonyme, vers un serveur et sauvegardé dans une base de données. Les auteurs mentionnent ceci sur la page [Vie privée](https://www.rtbf.be/test-electoral#/privacy).
 
