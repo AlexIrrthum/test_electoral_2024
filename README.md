@@ -1,6 +1,8 @@
 Données et code pour l'analyse du [Test électoral 2024 RTBF](https://www.rtbf.be/test-electoral)
 
-Pour calculer les scores des partis pour une liste de 35 réponses aux questions:
+L'algorithme du test est réimplémenté (100% identique) pour étudier son comportement et ses biais.
+
+Pour calculer les scores des partis pour une série de 35 réponses aux questions:
 
 `python test_electoral.py 'adddadadaddaadaaaddddaaddadaadaddaa'`
 
